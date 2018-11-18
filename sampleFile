@@ -56,14 +56,16 @@ class BodyGameRuntime(object):
         #self.balls = pygame.image.load('soccerball.png')
 
         # getting all coordinates of right hand 
-        self.rightHandCoor = 0
-        self.rightTipCoor = 0
-        self.rightWristCoor = 0
+        self.rightHandCoor = (0,0)
+        self.rightTipCoor = (0,0)
+        self.rightWristCoor = (0,0)
+        self.handOpen = True
 
 
         self.ballx = (self._infoObject.current_w)//2
         self.bally = (self._infoObject.current_h)//2
         self.ballr = 50
+        
 
 
     def draw_body_bone(self, joints, jointPoints, color, joint0, joint1):
@@ -154,7 +156,7 @@ class BodyGameRuntime(object):
     def checkCollison(self):
         # find distance of line from center
         handx = self.rightHandCoor[0]
-        handy = self.rightHandCoor[0]
+        handy = self.rightHandCoor[1]
         #r = ((handx - self.rightx) ** 2 + (handy - self.righty) ** 2)  ** 0.5
         distance = ((handx - self.ballx) ** 2 + (handy - self.bally) ** 2) ** 0.5
         # checking distance less than radius
@@ -164,14 +166,10 @@ class BodyGameRuntime(object):
 
     def checkHandOpen(self, jointPoints, body):
         if body.hand_right_state == HandState_Open:
-            xcoor, ycoor = self.rightHandCoor[0], self.rightHandCoor[1]
-            return True
-        return False
-        
-        # distance = ((self.rightHandCoorx - self.wristx) ** 2 + (self.rightHandCoory - self.wristy) ** 2) ** 0.5
-        # distanceMid = ((self.rightx - self.wristx) ** 2 + (self.righty - self.wristy) ** 2) ** 0.5
-        
-        #print(distanceMid - distance)
+            #xcoor, ycoor = self.rightHandCoor[0], self.rightHandCoor[1]
+            self.handOpen = True
+        else:
+            self.handOpen = False
 
     def run(self):
         # -------- Main Program Loop -----------
@@ -210,10 +208,11 @@ class BodyGameRuntime(object):
                     # convert joint coordinates to color space 
                     joint_points = self._kinect.body_joints_to_color_space(joints)
                     self.draw_body(joints, joint_points, SKELETON_COLORS[i])
+                    self.checkHandOpen(joint_points, body)   # check if hand is open
 
-            if self.checkCollison() and self.checkHandOpen():
-                self.ballx = int(self.rightHandCoorx)
-                self.bally = int(self.rightHandCoory)
+            if self.checkCollison() and self.handOpen == False:
+                self.ballx = int(self.rightHandCoor[0])
+                self.bally = int(self.rightHandCoor[1])
             else:
                 self.bally += 1
                 if self.bally >= self._infoObject.current_h - self.ballr:
@@ -243,4 +242,3 @@ class BodyGameRuntime(object):
 
 game = BodyGameRuntime();
 game.run();
-
