@@ -108,7 +108,7 @@ class BodyGameRuntime(object):
             self.leftWristCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
 
         if joint0 == PyKinectV2.JointType_SpineMid:
-            self.depth_of_body = joints[PyKinectV2, "JointType_SpineMid"].Position.z
+            self.depthOfPlayer = joints[getattr(PyKinectV2, "JointType_SpineMid")].Position.z
 
 
         end = (jointPoints[joint1].x, jointPoints[joint1].y)
@@ -230,18 +230,18 @@ class BodyGameRuntime(object):
    # DEPTH
 ###########################################################################
     def checkingDepth(self):
-        if self.depth_of_body < 1.7:
-            myfont = pygame.font.SysFont(None, 100)
-            text = "Move Back"
-            ren = myfont.render(text,0, (71, 94, 255) )
-            self._frame_surface.blit(ren, (450, 950))
+        if self.depthOfPlayer < 1.7:
+            font = pygame.font.SysFont('Courier', 100, bold=True)
+            text = "Back Up"
+            draw = font.render(text, True, (132, 186, 91) )
+            self._frame_surface.blit(draw, (100, 950))
             # if self.starting_screen_bool == False and self.ending_screen_bool == False:
             #     self.score -= 5 
-          elif self.depth_of_body > 2.2:
-            myfont = pygame.font.SysFont(None, 100)
-            text = "Move Forward"
-            ren = myfont.render(text,0, (71, 94, 255) )
-            self._frame_surface.blit(ren, (450, 950)) 
+        elif self.depthOfPlayer > 2.2:
+            font = pygame.font.SysFont('Courier', 150, bold=True)
+            text = "Too Far"
+            draw = font.render(text, True, (132, 186, 91) )
+            self._frame_surface.blit(draw, (100, 950)) 
             # if self.starting_screen_bool == False and self.ending_screen_bool == False:
             #     self.score -= 5
 
@@ -285,6 +285,8 @@ class BodyGameRuntime(object):
                     self.draw_body(joints, joint_points, SKELETON_COLORS[i])
                     self.checkHandOpen(joint_points, body)   # check if hand is open
             
+            self.checkingDepth()
+
             # ball motions
             self.moveBall()
             self.drawBall()
@@ -311,4 +313,3 @@ class BodyGameRuntime(object):
 __main__ = "Kinect v2 Body Game"
 game = BodyGameRuntime();
 game.run();
-
