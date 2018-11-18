@@ -56,12 +56,9 @@ class BodyGameRuntime(object):
         #self.balls = pygame.image.load('soccerball.png')
 
         # getting all coordinates of right hand 
-        self.rightHandCoorx = 0
-        self.rightHandCoory = 0
-        self.rightx = 0
-        self.righty = 0
-        self.wristx = 0
-        self.wristy = 0
+        self.rightHandCoor = 0
+        self.rightTipCoor = 0
+        self.rightWristCoor = 0
 
 
         self.ballx = (self._infoObject.current_w)//2
@@ -83,7 +80,24 @@ class BodyGameRuntime(object):
 
         # ok, at least one is good 
         start = (jointPoints[joint0].x, jointPoints[joint0].y)
+        
+        if joint0 == PyKinectV2.JointType_HandRight:
+            self.rightHandCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+        elif joint0 == PyKinectV2.JointType_HandTipRight:
+            self.rightTipCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+        elif joint0 == PyKinectV2.JointType_WristRight:
+            self.rightWristCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+
+
         end = (jointPoints[joint1].x, jointPoints[joint1].y)
+
+
+        self.rightHandCoorx = jointPoints[PyKinectV2.JointType_HandRight].x
+        self.rightHandCoory = jointPoints[PyKinectV2.JointType_HandRight].y
+        self.rightx = jointPoints[PyKinectV2.JointType_HandTipRight].x
+        self.righty = jointPoints[PyKinectV2.JointType_HandTipRight].y
+        self.wristx = jointPoints[PyKinectV2.JointType_WristRight].x
+        self.wristy = jointPoints[PyKinectV2.JointType_WristRight].y
 
         try:
             pygame.draw.line(self._frame_surface, color, start, end, 8)
@@ -107,13 +121,6 @@ class BodyGameRuntime(object):
         self.draw_body_bone(joints, jointPoints, color, PyKinectV2.JointType_WristRight, PyKinectV2.JointType_HandRight);
         self.draw_body_bone(joints, jointPoints, color, PyKinectV2.JointType_HandRight, PyKinectV2.JointType_HandTipRight);
         self.draw_body_bone(joints, jointPoints, color, PyKinectV2.JointType_WristRight, PyKinectV2.JointType_ThumbRight);
-
-        self.rightHandCoorx = jointPoints[PyKinectV2.JointType_HandRight].x
-        self.rightHandCoory = jointPoints[PyKinectV2.JointType_HandRight].y
-        self.rightx = jointPoints[PyKinectV2.JointType_HandTipRight].x
-        self.righty = jointPoints[PyKinectV2.JointType_HandTipRight].y
-        self.wristx = jointPoints[PyKinectV2.JointType_WristRight].x
-        self.wristy = jointPoints[PyKinectV2.JointType_WristRight].y
 
         # Left Arm
         self.draw_body_bone(joints, jointPoints, color, PyKinectV2.JointType_ShoulderLeft, PyKinectV2.JointType_ElbowLeft);
@@ -146,8 +153,8 @@ class BodyGameRuntime(object):
 
     def checkCollison(self):
         # find distance of line from center
-        handx = self.rightHandCoorx
-        handy = self.rightHandCoory
+        handx = self.rightHandCoor[0]
+        handy = self.rightHandCoor[0]
         #r = ((handx - self.rightx) ** 2 + (handy - self.righty) ** 2)  ** 0.5
         distance = ((handx - self.ballx) ** 2 + (handy - self.bally) ** 2) ** 0.5
         # checking distance less than radius
@@ -155,10 +162,14 @@ class BodyGameRuntime(object):
             return True
         return False
 
-    def checkHandOpen(self):
-
-        distance = ((self.rightHandCoorx - self.wristx) ** 2 + (self.rightHandCoory - self.wristy) ** 2) ** 0.5
-        distanceMid = ((self.rightx - self.wristx) ** 2 + (self.righty - self.wristy) ** 2) ** 0.5
+    def checkHandOpen(self, jointPoints, body):
+        if body.hand_right_state == HandState_Open:
+            xcoor, ycoor = self.rightHandCoor[0], self.rightHandCoor[1]
+            return True
+        return False
+        
+        # distance = ((self.rightHandCoorx - self.wristx) ** 2 + (self.rightHandCoory - self.wristy) ** 2) ** 0.5
+        # distanceMid = ((self.rightx - self.wristx) ** 2 + (self.righty - self.wristy) ** 2) ** 0.5
         
         #print(distanceMid - distance)
 
@@ -200,7 +211,7 @@ class BodyGameRuntime(object):
                     joint_points = self._kinect.body_joints_to_color_space(joints)
                     self.draw_body(joints, joint_points, SKELETON_COLORS[i])
 
-            if self.checkCollison():
+            if self.checkCollison() and self.checkHandOpen():
                 self.ballx = int(self.rightHandCoorx)
                 self.bally = int(self.rightHandCoory)
             else:
@@ -208,8 +219,6 @@ class BodyGameRuntime(object):
                 if self.bally >= self._infoObject.current_h - self.ballr:
                     self.bally = self._infoObject.current_h - self.ballr
 
-
-            self.checkHandOpen()
             self.drawBall()
 
             # --- copy back buffer surface pixels to the screen, resize it if needed and keep aspect ratio
