@@ -72,6 +72,8 @@ class BodyGameRuntime(object):
         self.ballx = (self._infoObject.current_w)//2
         self.bally = (self._infoObject.current_h)//2
         self.ballr = 50
+
+        self.depthOfPlayer = 0
         
 
 
@@ -104,6 +106,9 @@ class BodyGameRuntime(object):
             self.leftTipCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
         elif joint0 == PyKinectV2.JointType_WristLeft:
             self.leftWristCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+
+        if joint0 == PyKinectV2.JointType_SpineMid:
+            self.depth_of_body = joints[PyKinectV2, "JointType_SpineMid"].Position.z
 
 
         end = (jointPoints[joint1].x, jointPoints[joint1].y)
@@ -155,6 +160,10 @@ class BodyGameRuntime(object):
         ctypes.memmove(address, frame.ctypes.data, frame.size)
         del address
         target_surface.unlock()
+
+###########################################################################
+   # RELATED TO BALL
+###########################################################################
 
     # drawing the ball (graphics) it will later be a picture
     def drawBall(self):
@@ -216,6 +225,26 @@ class BodyGameRuntime(object):
             self.bally += 1
             if self.bally >= self._infoObject.current_h - self.ballr:
                 self.bally = self._infoObject.current_h - self.ballr
+
+###########################################################################
+   # DEPTH
+###########################################################################
+    def checkingDepth(self):
+        if self.depth_of_body < 1.7:
+            myfont = pygame.font.SysFont(None, 100)
+            text = "Move Back"
+            ren = myfont.render(text,0, (71, 94, 255) )
+            self._frame_surface.blit(ren, (450, 950))
+            # if self.starting_screen_bool == False and self.ending_screen_bool == False:
+            #     self.score -= 5 
+          elif self.depth_of_body > 2.2:
+            myfont = pygame.font.SysFont(None, 100)
+            text = "Move Forward"
+            ren = myfont.render(text,0, (71, 94, 255) )
+            self._frame_surface.blit(ren, (450, 950)) 
+            # if self.starting_screen_bool == False and self.ending_screen_bool == False:
+            #     self.score -= 5
+
 
     def run(self):
         # -------- Main Program Loop -----------
@@ -282,3 +311,4 @@ class BodyGameRuntime(object):
 __main__ = "Kinect v2 Body Game"
 game = BodyGameRuntime();
 game.run();
+
