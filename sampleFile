@@ -62,16 +62,32 @@ class BodyGameRuntime(object):
         self.collideRight = False
         self.rightHandOpen = True
 
+        # getting all coordinates of left hand
         self.leftHandCoor = (0,0)
         self.leftTipCoor = (0,0)
         self.leftWristCoor = (0,0)
         self.collideLeft = False
         self.leftHandOpen = True
 
+        # getting coordinates of right foot
+        self.rightAnkleCoor = (0,0)
+        self.rightFootCoor = (0,0)
+        self.collideFoot = False
+
+        # getting coordinates of left foot
+        self.leftAnkleCoor = (0,0)
+        self.leftFootCoor = (0,0)
+
         # ball coordinates
         self.ballx = (self._infoObject.current_w)//2
         self.bally = (self._infoObject.current_h)//2
-        self.ballr = 50
+        self.ballr = 100
+
+        # draw depth ball coordinates
+        # self.ballDepthx = (self._infoObject.current_w)//2
+        # self.ballDepthy = 
+        # self.ballDepthz = 
+        # self.ballDepthr = 
 
         self.depthOfPlayer = 0
         
@@ -106,6 +122,16 @@ class BodyGameRuntime(object):
             self.leftTipCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
         elif joint0 == PyKinectV2.JointType_WristLeft:
             self.leftWristCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+
+        if joint0 == PyKinectV2.JointType_AnkleRight:
+            self.rightAnkleCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+        elif joint0 == PyKinectV2.JointType_FootRight:
+            self.rightFootCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+
+        if joint0 == PyKinectV2.JointType_AnkleLeft:
+            self.leftAnkleCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+        elif joint0 == PyKinectV2.JointType_FootLeft:
+            self.leftFootCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
 
         if joint0 == PyKinectV2.JointType_SpineMid:
             self.depthOfPlayer = joints[getattr(PyKinectV2, "JointType_SpineMid")].Position.z
@@ -171,7 +197,7 @@ class BodyGameRuntime(object):
         pygame.draw.circle(self._frame_surface, color, [self.ballx, self.bally], self.ballr)
 
     # check hand and circle collison
-    def checkCollison(self):
+    def checkHandCollison(self):
         # find distance of line from center
         handRightx = self.rightHandCoor[0]
         handRighty = self.rightHandCoor[1]
@@ -197,6 +223,16 @@ class BodyGameRuntime(object):
             self.collideRight = False
             self.collideLeft = False
 
+    def checkFeetCollison(self):
+        distanceRight = ((self.rightAnkleCoor[0] - self.ballx) ** 2 + (self.rightAnkleCoor[1] - self.bally) ** 2) ** 0.5
+        distanceLeft = ((self.leftFootCoor[0] - self.ballx) ** 2 + (self.leftFootCoor[1] - self.bally) ** 2) ** 0.5
+
+        if distanceRight <= self.ballr or distanceLeft <= self.ballr and 10 <= self.balr <= 50:
+            self.collideFoot = True
+        else:
+            self.collidFoot = False
+
+
     # checking hand open or close
     def checkHandOpen(self, jointPoints, body):
         if body.hand_right_state == HandState_Open:
@@ -211,7 +247,8 @@ class BodyGameRuntime(object):
 
     # moves the ball according to hand motions
     def moveBall(self):
-        self.checkCollison()
+        self.checkFeetCollison()
+        self.checkHandCollison()
         if self.rightHandOpen == False and self.collideRight == True:
                 self.ballx = int(self.rightHandCoor[0])
                 self.bally = int(self.rightHandCoor[1])
@@ -225,6 +262,11 @@ class BodyGameRuntime(object):
             self.bally += 1
             if self.bally >= self._infoObject.current_h - self.ballr:
                 self.bally = self._infoObject.current_h - self.ballr
+        if self.collideFoot == True:
+            self.ballr += 20
+        else:
+            self.ballr -= 1
+    
 
 ###########################################################################
    # DEPTH
