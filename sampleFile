@@ -59,7 +59,14 @@ class BodyGameRuntime(object):
         self.rightHandCoor = (0,0)
         self.rightTipCoor = (0,0)
         self.rightWristCoor = (0,0)
-        self.handOpen = True
+        self.collideRight = False
+        self.rightHandOpen = True
+
+        self.leftHandCoor = (0,0)
+        self.leftTipCoor = (0,0)
+        self.leftWristCoor = (0,0)
+        self.collideLeft = False
+        self.leftHandOpen = True
 
 
         self.ballx = (self._infoObject.current_w)//2
@@ -90,16 +97,15 @@ class BodyGameRuntime(object):
         elif joint0 == PyKinectV2.JointType_WristRight:
             self.rightWristCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
 
+        if joint0 == PyKinectV2.JointType_HandLeft:
+            self.leftHandCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+        elif joint0 == PyKinectV2.JointType_HandTipLeft:
+            self.leftTipCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+        elif joint0 == PyKinectV2.JointType_WristLeft:
+            self.leftWristCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
+
 
         end = (jointPoints[joint1].x, jointPoints[joint1].y)
-
-
-        self.rightHandCoorx = jointPoints[PyKinectV2.JointType_HandRight].x
-        self.rightHandCoory = jointPoints[PyKinectV2.JointType_HandRight].y
-        self.rightx = jointPoints[PyKinectV2.JointType_HandTipRight].x
-        self.righty = jointPoints[PyKinectV2.JointType_HandTipRight].y
-        self.wristx = jointPoints[PyKinectV2.JointType_WristRight].x
-        self.wristy = jointPoints[PyKinectV2.JointType_WristRight].y
 
         try:
             pygame.draw.line(self._frame_surface, color, start, end, 8)
@@ -155,21 +161,41 @@ class BodyGameRuntime(object):
 
     def checkCollison(self):
         # find distance of line from center
-        handx = self.rightHandCoor[0]
-        handy = self.rightHandCoor[1]
+        handRightx = self.rightHandCoor[0]
+        handRighty = self.rightHandCoor[1]
+        handLeftx = self.leftHandCoor[0]
+        handLefty = self.leftHandCoor[1]
         #r = ((handx - self.rightx) ** 2 + (handy - self.righty) ** 2)  ** 0.5
-        distance = ((handx - self.ballx) ** 2 + (handy - self.bally) ** 2) ** 0.5
+        
+        # distance between left/right hand and the center of ball
+        distanceRight = ((handRightx - self.ballx) ** 2 + (handRighty - self.bally) ** 2) ** 0.5
+        distanceLeft = ((handLeftx - self.ballx) ** 2 + (handLefty - self.bally) ** 2) ** 0.5
+        
         # checking distance less than radius
-        if distance <= self.ballr:
-            return True
-        return False
+        if distanceRight <= self.ballr:
+            self.collideRight = True
+            self.collideLeft = False
+        elif distanceLeft <= self.ballr:
+            self.collideRight = False
+            self.collideLeft = True
+        elif distanceRight <= self.ballr and distanceLeft <= self.ballr:
+            self.collideRight = True
+            self.collideLeft = True
+        else:
+            self.collideRight = False
+            self.collideLeft = False
+
 
     def checkHandOpen(self, jointPoints, body):
         if body.hand_right_state == HandState_Open:
-            #xcoor, ycoor = self.rightHandCoor[0], self.rightHandCoor[1]
-            self.handOpen = True
+            self.rightHandOpen = True
         else:
-            self.handOpen = False
+            self.rightHandOpen = False
+
+        if body.hand_left_state == HandState_Open:
+            self.leftHandOpen = True
+        else:
+            self.leftHandOpen = False
 
     def run(self):
         # -------- Main Program Loop -----------
@@ -209,10 +235,18 @@ class BodyGameRuntime(object):
                     joint_points = self._kinect.body_joints_to_color_space(joints)
                     self.draw_body(joints, joint_points, SKELETON_COLORS[i])
                     self.checkHandOpen(joint_points, body)   # check if hand is open
-
-            if self.checkCollison() and self.handOpen == False:
-                self.ballx = int(self.rightHandCoor[0])
-                self.bally = int(self.rightHandCoor[1])
+            
+            self.checkCollison()
+            if self.rightHandOpen == False:
+                if self.collideRight == True:
+                    self.ballx = int(self.rightHandCoor[0])
+                    self.bally = int(self.rightHandCoor[1])
+                elif self.collideLeft == True:
+                    self.ballx = int(self.leftHandCoor[0])
+                    self.bally = int(self.leftHandCoor[1])
+                elif self.collideRight == True and self.collideLeft == True:
+                    self.ballx = (int(self.rightHandCoor[0]) + int(self.leftHandCoor[0])) / 2
+                    self.bally = (int(self.rightHandCoor[1]) + int(self.leftHandCoor[1])) / 2
             else:
                 self.bally += 1
                 if self.bally >= self._infoObject.current_h - self.ballr:
