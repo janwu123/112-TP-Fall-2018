@@ -125,12 +125,12 @@ class BodyGameRuntime(object):
 
         if joint0 == PyKinectV2.JointType_AnkleRight:
             self.rightAnkleCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
-        elif joint0 == PyKinectV2.JointType_FootRight:
+        if joint0 == PyKinectV2.JointType_FootRight:
             self.rightFootCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
 
         if joint0 == PyKinectV2.JointType_AnkleLeft:
             self.leftAnkleCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
-        elif joint0 == PyKinectV2.JointType_FootLeft:
+        if joint0 == PyKinectV2.JointType_FootLeft:
             self.leftFootCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
 
         if joint0 == PyKinectV2.JointType_SpineMid:
@@ -224,13 +224,18 @@ class BodyGameRuntime(object):
             self.collideLeft = False
 
     def checkFeetCollison(self):
-        distanceRight = ((self.rightAnkleCoor[0] - self.ballx) ** 2 + (self.rightAnkleCoor[1] - self.bally) ** 2) ** 0.5
-        distanceLeft = ((self.leftFootCoor[0] - self.ballx) ** 2 + (self.leftFootCoor[1] - self.bally) ** 2) ** 0.5
+        rightCoorx = self.rightAnkleCoor[0]
+        rightCoory = self.rightAnkleCoor[1]
+        leftCoorx = self.leftAnkleCoor[0]
+        leftCoory = self.leftAnkleCoor[1]
+        print(rightCoorx, rightCoory)
+        distanceRight = ((rightCoorx - self.ballx) ** 2 + (rightCoory - self.bally) ** 2) ** 0.5
+        distanceLeft = ((leftCoorx - self.ballx) ** 2 + (leftCoory - self.bally) ** 2) ** 0.5
 
-        if distanceRight <= self.ballr or distanceLeft <= self.ballr and 10 <= self.balr <= 50:
+        if distanceRight <= self.ballr or distanceLeft <= self.ballr:
             self.collideFoot = True
         else:
-            self.collidFoot = False
+            self.collideFoot = False
 
 
     # checking hand open or close
@@ -247,7 +252,7 @@ class BodyGameRuntime(object):
 
     # moves the ball according to hand motions
     def moveBall(self):
-        self.checkFeetCollison()
+
         self.checkHandCollison()
         if self.rightHandOpen == False and self.collideRight == True:
                 self.ballx = int(self.rightHandCoor[0])
@@ -262,10 +267,19 @@ class BodyGameRuntime(object):
             self.bally += 1
             if self.bally >= self._infoObject.current_h - self.ballr:
                 self.bally = self._infoObject.current_h - self.ballr
+       
+               
+                
+    def moveFootBall(self):
+        self.checkFeetCollison()
         if self.collideFoot == True:
-            self.ballr += 20
+            self.ballr += 5
+            if self.ballr >= 100:
+                self.ballr = 100
         else:
             self.ballr -= 1
+            if self.ballr == 0:
+                self.ballr = 100
     
 
 ###########################################################################
@@ -331,6 +345,7 @@ class BodyGameRuntime(object):
 
             # ball motions
             self.moveBall()
+            self.moveFootBall()
             self.drawBall()
 
             # --- copy back buffer surface pixels to the screen, resize it if needed and keep aspect ratio
@@ -346,7 +361,7 @@ class BodyGameRuntime(object):
             pygame.display.flip()   # simply updates the screen
 
             # --- Limit to 60 frames per second
-            self._clock.tick(90)
+            self._clock.tick(70)
 
         # Close our Kinect sensor, close the window and quit.
         self._kinect.close()
