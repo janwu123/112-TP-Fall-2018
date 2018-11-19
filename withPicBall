@@ -80,11 +80,22 @@ class BodyGameRuntime(object):
         self.leftAnkleCoor = (0,0)
         self.leftFootCoor = (0,0)
 
+
+
+        self.spineMidCoor = (0,0)
+
         ballsRect = self.balls.get_rect()
         # ball coordinates
         self.ballx = (self._infoObject.current_w)//2
         self.bally = (self._infoObject.current_h)//2
-        self.ballr = ballsRect.width - ballsRect.center[0]
+        self.ballr = ballsRect.height / 2
+        self.soccer = False
+
+        self.tennisBalls = [pygame.image.load("rightTennis.png"), pygame.image.load("leftTennis.png")]
+        self.tennisRect = self.tennisBalls[0].get_rect()
+        self.rightSide = False  
+        self.leftSide = True   
+        self.tennis = True
 
 
         # draw depth ball coordinates
@@ -139,6 +150,7 @@ class BodyGameRuntime(object):
 
         if joint0 == PyKinectV2.JointType_SpineMid:
             self.depthOfPlayer = joints[getattr(PyKinectV2, "JointType_SpineMid")].Position.z
+            self.spineMidCoor = (jointPoints[joint0].x, jointPoints[joint0].y)
 
 
         end = (jointPoints[joint1].x, jointPoints[joint1].y)
@@ -192,8 +204,14 @@ class BodyGameRuntime(object):
         target_surface.unlock()
 
 ###########################################################################
-   # RELATED TO BALL
+   # SOCCER MODE
 ###########################################################################
+
+    def soccerMode(self):
+        if self.soccer == True:
+            self.moveBall()
+            self.moveFootBall()
+            self.drawBall()
 
     # drawing the ball (graphics) it will later be a picture
     def drawBall(self):
@@ -253,6 +271,7 @@ class BodyGameRuntime(object):
             self.leftHandOpen = True
         else:
             self.leftHandOpen = False
+            self.leftHandOpen = False
 
     # moves the ball according to hand motions
     def moveBall(self):
@@ -269,22 +288,51 @@ class BodyGameRuntime(object):
                 self.bally = (int(self.rightHandCoor[1]) + int(self.leftHandCoor[1])) / 2
         else:
             self.bally += 1
-            if self.bally >= self._infoObject.current_h - self.ballr:
+            if self.bally + self.ballr >= self._infoObject.current_h:
                 self.bally = self._infoObject.current_h - self.ballr
-       
-               
                 
     def moveFootBall(self):
         self.checkFeetCollison()
+        # rewrite shrinking part (shrink the picture)
         if self.collideFoot == True:
-            self.ballr += 5
+           #self.ballr += 5
             if self.ballr >= 100:
                 self.ballr = 100
         else:
-            self.ballr -= 1
+            #self.ballr -= 1
             if self.ballr == 0:
                 self.ballr = 100
-    
+
+###########################################################################
+   # TENNIS MODE
+###########################################################################
+    def tennisMode(self):
+        if self.tennis == True:
+            self.drawRacket()
+
+    def drawRacket(self):
+        # checks if player is righty or lefty
+        if self.rightSide:
+            wristX = self.rightWristCoor[0]
+            wristY = self.rightWristCoor[1]
+        elif self.leftSide:
+            wristX = self.leftWristCoor[0]
+            wristY = self.leftWristCoor[1]
+
+        # checks which side racket is on according to their dominant hand
+        if self.rightSide and wristX < self.spineMidCoor[0] or self.leftSide and wristX <= self.spineMidCoor[0]:
+            rotated = pygame.transform.rotate(self.tennisBalls[1], 45)
+            tennisGrip = rotated.get_rect()
+
+            tennisGrip.right = wristX
+            tennisGrip.bottom = wristY
+            self._frame_surface.blit(rotated, (tennisGrip.right - tennisGrip.width, tennisGrip.bottom - tennisGrip.height))
+        elif self.rightSide and wristX >= self.spineMidCoor[0] or self.leftSide and wristX > self.spineMidCoor[0]:
+            tennisGrip = self.tennisBalls[0].get_rect()
+            tennisGrip.left = wristX
+            tennisGrip.bottom = wristY
+            self._frame_surface.blit(self.tennisBalls[0], (tennisGrip.left, tennisGrip.bottom - tennisGrip.height))
+
 
 ###########################################################################
    # DEPTH
@@ -348,9 +396,8 @@ class BodyGameRuntime(object):
             self.checkingDepth()
 
             # ball motions
-            self.moveBall()
-            self.moveFootBall()
-            self.drawBall()
+            self.soccerMode()
+            self.tennisMode()
 
 
             # --- copy back buffer surface pixels to the screen, resize it if needed and keep aspect ratio
