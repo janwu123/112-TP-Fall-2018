@@ -90,27 +90,17 @@ class BodyGameRuntime(object):
 
         # characteristics of tennis racket and balll
         self.tennisRacket = [pygame.image.load("rightTennis.png"), pygame.image.load("leftTennis.png")]
-        self.tennisGrip = ''
+        self.tennisGrip = ''   # location of the grip to hold
         self.rightSide = False  
         self.leftSide = True
         self.tennisBall = pygame.image.load("tennis.png").convert_alpha()
         self.tennisBallRect = self.tennisBall.get_rect()
-        self.tennisBallx = (self._infoObject.current_w)//2
-        self.tennisBally = (self._infoObject.current_h)//2
-        self.tennisBallr = self.tennisBallRect.height / 2
-        self.tennisBallList = []
+        self.tennisBallr = self.tennisBallRect.height / 2   # original radius of the ball
+        self.tennisBallList = []   # list of all tennis balls
         self.tennis = True
 
-        self.scale = 100
         self.timerCount = 0
 
-        # draw depth ball coordinates
-        # self.ballDepthx = (self._infoObject.current_w)//2
-        # self.ballDepthy = 
-        # self.ballDepthz = 
-        # self.ballDepthr = 
-
-        # checking the distance of player from device
         self.depthOfPlayer = 0
         
 
