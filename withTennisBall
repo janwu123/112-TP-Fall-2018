@@ -98,8 +98,11 @@ class BodyGameRuntime(object):
         self.tennisBallx = (self._infoObject.current_w)//2
         self.tennisBally = (self._infoObject.current_h)//2
         self.tennisBallr = self.tennisBallRect.height / 2
+        self.tennisBallList = []
         self.tennis = True
 
+
+        self.timerCount = 0
 
         # draw depth ball coordinates
         # self.ballDepthx = (self._infoObject.current_w)//2
@@ -316,11 +319,13 @@ class BodyGameRuntime(object):
     # play tennis mode
     def tennisMode(self):
         if self.tennis == True:
+            self.timerCount += 1
             self.drawRacket()
-            if self.collideRacket():
-                pass
+            for elem in self.tennisBallList:
+                if self.collideRacket(elem):
+                    self.tennisBallList.remove(elem)
+                self.moveTennisBall(elem)
             self.drawTennisBall()
-            #self.drawBALL()
 
     def getAngleWrist(self):
         angle = 0
@@ -366,42 +371,41 @@ class BodyGameRuntime(object):
             #self.tennisGrip = rotated.get_rect(midright = (wristX,wristY))
             #self._frame_surface.blit(rotated, self.tennisGrip)
             self.tennisGrip = self.tennisRacket[1].get_rect(bottomright=(wristX, wristY))
-            #self.tennisGrip.right = wristX
-            #self.tennisGrip.bottom = wristY
             self._frame_surface.blit(self.tennisRacket[1], self.tennisGrip)
         # when hand is on the right side of body
         elif self.rightSide and wristX >= self.spineMidCoor[0] or self.leftSide and wristX > self.spineMidCoor[0]:
             self.tennisGrip = self.tennisRacket[0].get_rect(bottomleft=(wristX, wristY))
-            #self.tennisGrip.left = wristX
-            #self.tennisGrip.bottom = wristY
             self._frame_surface.blit(self.tennisRacket[0], self.tennisGrip)
 
 
     def drawTennisBall(self):
-        ball = self.tennisBall.get_rect(center=(self.tennisBallx, self.tennisBally))
-        self._frame_surface.blit(self.tennisBall, ball)
+        if self.timerCount % 280 == 0:
+            tennisBallx = random.uniform(self.tennisBallr, (self._infoObject.current_w - self.tennisBallr))
+            tennisBally = random.uniform(self.tennisBallr, (self._infoObject.current_h - self.tennisBallr))
+            tennisBallSpeed = random.randint(100, 200)
+            self.tennisBallList.append([self.tennisBall.get_rect(center=(tennisBallx, tennisBally)), tennisBallSpeed])
+        for elem in self.tennisBallList:
+            self._frame_surface.blit(self.tennisBall, elem[0])
 
-    def drawBALL(self):
-        x = 50
-        y = 50
-        r = 50
-        z = 50
-        color = pygame.color.THECOLORS["blue"]
-        pygame.draw.circle(self._frame_surface, color, [x, y], 50)
-        z += 20
-        if z == 500:
-            z = 50
+    def moveTennisBall(self, elem):
+        if elem[1] != 0:
+            elem[0].centery -= 1
+            elem[1] -= 1
+        else:
+            elem[0].centery += 5
+            if elem[0].centery >= self._infoObject.current_h - elem[0].height / 2:
+                elem[0].centery = self._infoObject.current_h - elem[0].height / 2
 
-    def collideRacket(self):
+    def collideRacket(self, elem):
         centerx = self.tennisGrip.center[0]
         centery = self.tennisGrip.center[1]
         width = self.tennisGrip.width / 2
         height = self.tennisGrip.height / 2
         bottom = centery + self.tennisBallr
-        top = centery - height - self.tennisBallr
+        top = centery - height
         left = centerx - self.tennisBallr
         right = centerx + width + self.tennisBallr
-        if left <= self.tennisBallx <= right and top <= self.tennisBally <= bottom:
+        if left <= elem[0].centerx <= right and top <= elem[0].centery <= bottom:
             return True
         return False
 
