@@ -211,28 +211,46 @@ class BodyGameRuntime(object):
 ###########################################################################
     def starterMode(self):
         if self.starter == True:
-            tennisRect = pygame.Rect(0,300,500,200)
-            soccerRect = pygame.Rect(0,100,500,200)
+            tennisRect = pygame.Rect(0,100,500,200)
+            soccerRect = pygame.Rect(0, 700, 500, 200)
+            highScore = pygame.Rect(self._infoObject.current_w - 500,100,500,200)
 
-            pygame.draw.rect(self._frame_surface, (0, 0, 0), soccerRect)
             font = pygame.font.SysFont('Courier', 60, bold=True)
-            soccerText = "Soccer Mode"
-            soccerDraw = font.render(soccerText, True, (255, 255, 255) )
-            self._frame_surface.blit(soccerDraw, (0, 125))
-
+            instruct = pygame.font.SysFont('Courier', 40, bold=True)
             pygame.draw.rect(self._frame_surface, (153, 255, 51), tennisRect)
             tennisText = "Tennis Mode"
             tennisDraw = font.render(tennisText, True, (0, 0, 0) )
-            self._frame_surface.blit(tennisDraw, (0, 325))
+            self._frame_surface.blit(tennisDraw, (50, 150))
+            instructionT = "touch w/ left hand"
+            tennisDraw = instruct.render(instructionT, True, (0, 0, 0) )
+            self._frame_surface.blit(tennisDraw, (50, 100))
 
-            if soccerRect.collidepoint(self.rightHandCoor):
-                self.soccer = True
-                self.starter = False
-                self.tennis = False
-            if tennisRect.collidepoint(self.rightHandCoor):
+            pygame.draw.rect(self._frame_surface, (0, 0, 0), soccerRect)
+            soccerText = "Soccer Mode"
+            soccerDraw = font.render(soccerText, True, (255, 255, 255) )
+            self._frame_surface.blit(soccerDraw, (50, 750))
+            instructionS = "kick w/ left foot"
+            soccerDraw = instruct.render(instructionS, True, (255, 255, 255) )
+            self._frame_surface.blit(soccerDraw, (50, 700))
+
+            pygame.draw.rect(self._frame_surface, (255, 51, 51), highScore)
+            highText = "High Scores"
+            highDraw = font.render(highText, True, (255, 255, 255) )
+            self._frame_surface.blit(highDraw, (self._infoObject.current_w - 500, 150))
+            instructionH = "touch w/ right hand"
+            highDraw = instruct.render(instructionH, True, (255, 255, 255) )
+            self._frame_surface.blit(highDraw, (self._infoObject.current_w - 500, 100))
+            
+            if tennisRect.collidepoint(self.leftHandCoor):
                 self.tennis = True
                 self.starter = False
                 self.soccer = False
+            if soccerRect.collidepoint(self.leftAnkleCoor):
+                self.soccer = True
+                self.starter = False
+                self.tennis = False
+            if highScore.collidepoint(self.rightHandCoor):
+                pass
 
 ###########################################################################
    # SOCCER MODE
@@ -368,14 +386,9 @@ class BodyGameRuntime(object):
             self.timerCount += 1
             self.drawRacket()
             for elem in self.tennisBallList:
-                if self.collideRacket(elem):
-                    elem[3] += 20
-                    if elem[3] >= 150:
-                        self.tennisBallList.remove(elem)
-                    self._frame_surface.blit(pygame.transform.smoothscale(elem[2], [elem[3], elem[3]]), elem[0])
+                self.collideRacket(elem)
                 self.moveTennisBall(elem)
             self.drawTennisBall()
-            pygame.display.update()
 
     def getAngleWrist(self):
         angle = 0
@@ -434,28 +447,37 @@ class BodyGameRuntime(object):
             tennisBally = random.uniform(self.tennisBallr, (self._infoObject.current_h - self.tennisBallr))
             tennisBallSpeed = random.randint(100, 200)
             scale = 150
+            hit = False
             ball = pygame.image.load("tennis.png")
             drawBall = ball.get_rect(center=(tennisBallx, tennisBally))
-            self.tennisBallList.append([drawBall, tennisBallSpeed, ball, scale])
+            self.tennisBallList.append([drawBall, tennisBallSpeed, ball, scale, hit])
         for elem in self.tennisBallList:
-            if elem[3] <= 50:
-                self.tennisBallList.remove(elem)
-            if self.timerCount % 2 == 0:
-                elem[3] -= 1
-            self._frame_surface.blit(pygame.transform.smoothscale(elem[2], [elem[3], elem[3]]), elem[0])
+            if elem[4] == False:
+                if elem[3] <= 50:
+                    self.tennisBallList.remove(elem)
+                if self.timerCount % 2 == 0:
+                    elem[3] -= 1
+                self._frame_surface.blit(pygame.transform.smoothscale(elem[2], [elem[3], elem[3]]), elem[0])
+            else:
+                if elem[3] >= 150:
+                    self.tennisBallList.remove(elem)
+                if self.timerCount % 2 == 0:
+                    elem[3] += 10
+                self._frame_surface.blit(pygame.transform.smoothscale(elem[2], [elem[3], elem[3]]), elem[0])
             pygame.display.flip()
 
 
     def moveTennisBall(self, elem):
-        if elem[1] > 0:
-            elem[0].centery -= 1
-            elem[1] -= 1
-        elif elem[1] == 0:
-            elem[1] -= 1
-        else:
-            elem[0].centery += 5
-            if elem[0].centery >= self._infoObject.current_h - elem[0].height / 2:
-                elem[0].centery = self._infoObject.current_h - elem[0].height / 2
+        if elem[4]:
+            if elem[1] > 0:
+                elem[0].centery -= 1
+                elem[1] -= 1
+            elif elem[1] == 0:
+                elem[1] -= 1
+            else:
+                elem[0].centery += 5
+                if elem[0].centery >= self._infoObject.current_h - elem[0].height / 2:
+                    elem[0].centery = self._infoObject.current_h - elem[0].height / 2
 
     def collideRacket(self, elem):
         centerx = self.tennisGrip.center[0]
@@ -467,8 +489,7 @@ class BodyGameRuntime(object):
         left = centerx - self.tennisBallr
         right = centerx + width + self.tennisBallr
         if left <= elem[0].centerx <= right and top <= elem[0].centery <= bottom:
-            return True
-        return False
+            elem[4] = True
 
 
 
