@@ -292,7 +292,7 @@ class BodyGameRuntime(object):
             self._frame_surface.blit(kickerDraw, (self._infoObject.current_w - 500, 750))
 
             text = "Use Right Hand To Select"
-            ren = myfont.render(text, True, (127, 6, 119) )
+            ren = font.render(text, True, (127, 6, 119) )
             self._frame_surface.blit(ren, (400, 300))
             
             if targetRect.collidepoint(self.rightHandCoor):
@@ -478,7 +478,7 @@ class BodyGameRuntime(object):
             self._frame_surface.blit(homeDraw, (self._infoObject.current_w - 500, 750))
 
             text = "Use Right Hand To Select"
-            ren = myfont.render(text, True, (127, 6, 119) )
+            ren = font.render(text, True, (127, 6, 119) )
             self._frame_surface.blit(ren, (400, 300))
             
             if serveRect.collidepoint(self.rightHandCoor):
@@ -487,7 +487,7 @@ class BodyGameRuntime(object):
                 self.tennisTarget = False
                 self.tennisAI = False
                 self.starter = False
-            if targetDraw.collidepoint(self.rightHandCoor):
+            if targetRect.collidepoint(self.rightHandCoor):
                 self.tennis = False
                 self.tennisServe = False
                 self.tennisTarget = True
