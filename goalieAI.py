@@ -23,7 +23,7 @@ HIGHESTSCORES = []
 
 
 class BodyGameRuntime(object):
-    def __init__(self):
+    def __init__(self, soccerGoalie=False, soccerKicker=False, tennisAI=False):
         pygame.init()   # gets pygame started (starts game)
 
         # Used to manage how fast the screen updates
@@ -45,9 +45,9 @@ class BodyGameRuntime(object):
         # Used to manage how fast the screen updates
         self._clock = pygame.time.Clock()
 
-        self.soccerGoalie = True
-        self.soccerKicker = False
-        self.tennisAI = False
+        self.soccerGoalie = soccerGoalie
+        self.soccerKicker = soccerKicker
+        self.tennisAI = tennisAI
 
         if self.soccerGoalie or self.soccerKicker or self.tennisAI:
             self._kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Body)
@@ -91,8 +91,8 @@ class BodyGameRuntime(object):
         # characteristics of soccer ball
         self.balls = pygame.image.load('soccer.png').convert_alpha()
         ballsRect = self.balls.get_rect()
-        self.ballx = (self._infoObject.current_w)//2
-        self.bally = (self._infoObject.current_h)//2
+        self.ballx = (self._infoObject.current_w) // 2
+        self.bally = (self._infoObject.current_h) // 2
         self.ballr = ballsRect.height / 2
         self.soccerList = []
         self.rightKick = False
@@ -140,8 +140,9 @@ class BodyGameRuntime(object):
         self.orginalRightFoot = (0,0)
         self.orginalLeftFoot = (0,0)
 
+        self.functionCount = 0
         self.score = 0
-        self.timer = 30
+        self.timer = 30   # 30 seconds for each game
 
         self.starter = False
         self.gameOver = False
@@ -275,6 +276,8 @@ class BodyGameRuntime(object):
             highScore = pygame.Rect(self._infoObject.current_w - 500,100,500,200)
 
             font = pygame.font.SysFont('Courier', 60, bold=True)
+
+            # drawing tennis mode box
             instruct = pygame.font.SysFont('Courier', 40, bold=True)
             pygame.draw.rect(self._frame_surface, (153, 255, 51), tennisRect)
             tennisText = "Tennis Mode"
@@ -284,6 +287,7 @@ class BodyGameRuntime(object):
             tennisDraw = instruct.render(instructionT, True, (0, 0, 0) )
             self._frame_surface.blit(tennisDraw, (50, 100))
 
+            # drawing soccer mode box
             pygame.draw.rect(self._frame_surface, (0, 0, 0), soccerRect)
             soccerText = "Soccer Mode"
             soccerDraw = font.render(soccerText, True, (255, 255, 255) )
@@ -292,6 +296,7 @@ class BodyGameRuntime(object):
             soccerDraw = instruct.render(instructionS, True, (255, 255, 255) )
             self._frame_surface.blit(soccerDraw, (50, 700))
 
+            # drawing highest score box
             pygame.draw.rect(self._frame_surface, (255, 51, 51), highScore)
             highText = "High Scores"
             highDraw = font.render(highText, True, (255, 255, 255) )
@@ -300,6 +305,8 @@ class BodyGameRuntime(object):
             highDraw = instruct.render(instructionH, True, (255, 255, 255) )
             self._frame_surface.blit(highDraw, (self._infoObject.current_w - 500, 100))
             
+
+            # checking the mode player chose
             if tennisRect.collidepoint(self.leftHandCoor):
                 self.tennis = True
                 self.starter = False
@@ -484,6 +491,7 @@ class BodyGameRuntime(object):
 
     def soccerKickerMode(self):
         if self.soccerKicker:
+            self.functionCount += 1
             goal = pygame.Rect(300,200,1300,360)
             self.drawScoreTime()
             self.background = self.soccerGoalFront
@@ -948,6 +956,7 @@ class BodyGameRuntime(object):
 
             if homeRect.collidepoint(self.rightHandCoor):
                 self.gameOver = False
+                self.__init__()    # newly added part to initialize everything
                 self.starter = True
 
 
@@ -1021,7 +1030,11 @@ class BodyGameRuntime(object):
             # all soccer modes
             self.soccerMode()
             self.soccerTargetMode()
+            if self.soccerKicker and self.functionCount == 0:
+                self.init(soccerKicker=True)
             self.soccerKickerMode()
+            if self.soccerGoalie and self.functionCount == 0:
+                self.init(soccerGoalie=True)
             self.soccerGoalieMode()
 
             # all tennis modes
