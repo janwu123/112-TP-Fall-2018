@@ -23,7 +23,7 @@ HIGHESTSCORES = []
 
 
 class BodyGameRuntime(object):
-    def __init__(self, soccerGoalie=False, soccerKicker=False, tennisAI=False):
+    def __init__(self):
         pygame.init()   # gets pygame started (starts game)
 
         # Used to manage how fast the screen updates
@@ -31,6 +31,7 @@ class BodyGameRuntime(object):
 
         # Set the width and height of the screen [width, height]
         self._infoObject = pygame.display.Info()
+        #print(self._infoObject) 
         # set_mode(resolution = (width, height), flags= collection of additional options, depth = num of bits for color)
         # the flags controls type of display wanted
         self._screen = pygame.display.set_mode((self._infoObject.current_w >> 1, self._infoObject.current_h >> 1), 
@@ -45,14 +46,7 @@ class BodyGameRuntime(object):
         # Used to manage how fast the screen updates
         self._clock = pygame.time.Clock()
 
-        self.soccerGoalie = soccerGoalie
-        self.soccerKicker = soccerKicker
-        self.tennisAI = tennisAI
-
-        if self.soccerGoalie or self.soccerKicker or self.tennisAI:
-            self._kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Body)
-        else:
-            self._kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Color | PyKinectV2.FrameSourceTypes_Body)
+        self._kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Color | PyKinectV2.FrameSourceTypes_Body)
 
         # back buffer surface for getting Kinect color frames, 32bit color, width and height equal to the Kinect color frame size
         self._frame_surface = pygame.Surface((self._kinect.color_frame_desc.Width, self._kinect.color_frame_desc.Height), 0, 32)
@@ -99,6 +93,8 @@ class BodyGameRuntime(object):
         self.leftKick = False
         self.soccer = False   # check if in soccer mode
         self.soccerTarget = False
+        self.soccerGoalie = False
+        self.soccerKicker = False
 
         self.soccerGoalFront = pygame.image.load('goal.png')
         self.goalieCoor = [self._infoObject.current_w / 2, self._infoObject.current_h / 2]
@@ -108,7 +104,7 @@ class BodyGameRuntime(object):
         # characteristics of tennis racket and balll
         self.tennisRacket = [pygame.image.load("rightTennis.png"), pygame.image.load("leftTennis.png")]
         self.tennisGrip = ''   # location of the grip to hold
-        self.rightSide = True    # check if racket on right side
+        self.rightSide = False    # check if racket on right side
         self.leftSide = False    # check if racket on left side
         self.tennisBall = pygame.image.load("tennis.png").convert_alpha()
         self.tennisBallRect = self.tennisBall.get_rect()
@@ -117,6 +113,7 @@ class BodyGameRuntime(object):
         self.tennis = False   # check if in tennis mode
         self.tennisServe = False
         self.tennisTarget = False
+        self.tennisAI = False
 
         self.background = ""
 
@@ -144,7 +141,7 @@ class BodyGameRuntime(object):
         self.score = 0
         self.timer = 30   # 30 seconds for each game
 
-        self.starter = False
+        self.starter = True
         self.gameOver = False
 
 
@@ -380,7 +377,7 @@ class BodyGameRuntime(object):
                 self.soccerTarget = False
                 self.soccerGoalie = False
                 self.soccerKicker = True
-                self.starter = True
+                self.starter = False
     
     # check foot collision 
     def checkFeetCollison(self, elem):
@@ -499,7 +496,7 @@ class BodyGameRuntime(object):
                 self.checkFeetCollison(elem)
                 self.moveScoreBall(elem)
                 ballRect = pygame.Rect(elem[0].x, elem[0].y, 35, 35)
-                if self.timerCount % 5 == 0:
+                if self.timerCount % 10 == 0:
                     self.moveGoalie(elem)
                 if self.collideGoalie(elem) == False and elem[2] <= 70 and ballRect.colliderect(goal):
                     self.score += 1
@@ -560,6 +557,7 @@ class BodyGameRuntime(object):
     def moveScoreBall(self, ball):
         if ball[3] == True:
             direction = self.directionS() * 800
+            print(ball[0].centerx, ball[0].centery)
             if direction < 0:
                 direction *= 1.5
             if ball[0].centery < ball[0].height:
@@ -956,7 +954,7 @@ class BodyGameRuntime(object):
 
             if homeRect.collidepoint(self.rightHandCoor):
                 self.gameOver = False
-                self.__init__()    # newly added part to initialize everything
+                #self.__init__()    # newly added part to initialize everything
                 self.starter = True
 
 
@@ -1027,14 +1025,13 @@ class BodyGameRuntime(object):
             # starter screen 
             self.starterMode()
 
+            if self.soccerKicker or self.soccerGoalie or self.tennisAI and self.functionCount == 0:
+                self._kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Body)
+
             # all soccer modes
-            self.soccerMode()
+            self.soccerMode() 
             self.soccerTargetMode()
-            if self.soccerKicker and self.functionCount == 0:
-                self.init(soccerKicker=True)
             self.soccerKickerMode()
-            if self.soccerGoalie and self.functionCount == 0:
-                self.init(soccerGoalie=True)
             self.soccerGoalieMode()
 
             # all tennis modes
