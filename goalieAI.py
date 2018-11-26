@@ -21,7 +21,7 @@ SKELETON_COLORS = [pygame.color.THECOLORS["red"],
 
 HIGHESTSCORES = []
 
-
+# recieved template from https://github.com/Kinect/PyKinect2/blob/master/examples/PyKinectBodyGame.py
 class BodyGameRuntime(object):
     def __init__(self):
         pygame.init()   # gets pygame started (starts game)
