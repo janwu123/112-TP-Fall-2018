@@ -45,8 +45,8 @@ class BodyGameRuntime(object):
         # Used to manage how fast the screen updates
         self._clock = pygame.time.Clock()
 
-        self.soccerGoalie = False
-        self.soccerKicker = True
+        self.soccerGoalie = True
+        self.soccerKicker = False
         self.tennisAI = False
 
         if self.soccerGoalie or self.soccerKicker or self.tennisAI:
@@ -1032,14 +1032,20 @@ class BodyGameRuntime(object):
             
             self.checkingDepth()
 
-            # playing different modes
+            # starter screen 
             self.starterMode()
+
+            # all soccer modes
             self.soccerMode()
             self.soccerTargetMode()
             self.soccerKickerMode()
+
+            # all tennis modes
             self.tennisMode()
             self.serveMode()
             self.tennisTargetMode()
+            
+            # end screen
             self.gameOverMode()
 
 
