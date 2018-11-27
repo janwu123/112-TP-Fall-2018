@@ -109,7 +109,7 @@ class BodyGameRuntime(object):
         # characteristics of tennis racket and ball
         self.tennisRacket = [pygame.image.load("rightTennis.png"), pygame.image.load("leftTennis.png")]
         self.tennisGrip = ''   # location of the grip to hold
-        self.rightSide = False    # check if racket on right side
+        self.rightSide = True    # check if racket on right side
         self.leftSide = False    # check if racket on left side
         self.tennisBall = pygame.image.load("tennis.png").convert_alpha()
         self.tennisBallRect = self.tennisBall.get_rect()
@@ -876,19 +876,18 @@ class BodyGameRuntime(object):
                 otherSide = self.leftHandCoor
             else:
                 side = self.leftHandCoor
-                otherSide = self.rigthHandCoor
+                otherSide = self.rightHandCoor
 
-            
             self.drawScoreTime()
             self.background = self.court
             self.drawRacket()
             for elem in self.playTennisList:
                 self.drawOpponentRacket(elem)
-                if elem[5]:
-                    self.collideRacket(elem)
-                elif elem[4]:
-                    self.collideOpponentRacket(elem)
-                self.moveAIBall(elem)
+                #if elem[5]:
+                #    self.collideRacket(elem)
+                #elif elem[4]:
+                #    self.collideOpponentRacket(elem)
+                self.moveAIBall(elem, otherSide)
             self.drawAiBall(otherSide)
 
     
@@ -914,12 +913,13 @@ class BodyGameRuntime(object):
         # checks which side racket is on according to their dominant hand
         # when hand is on the left side of body
         if self.opponentX > elem[0].centerx:
-            self.tennisOpponentGrip = '' = self.tennisOpponentRacket[1].get_rect(bottomright=(self.opponentX, elem[0].centery))
+            self.tennisOpponentGrip = self.tennisOpponentRacket[1].get_rect(bottomright=(self.opponentX, elem[0].centery))
             self._frame_surface.blit(self.tennisOpponentRacket[1], self.tennisOpponentGrip)
         # when hand is on the right side of body
         else:
-            self.tennisOpponentGrip = self.tennisOpponentRacket[0].get_rect(bottomleft=(self.opponentX, elem[0].centery)
+            self.tennisOpponentGrip = self.tennisOpponentRacket[0].get_rect(bottomleft=(self.opponentX, elem[0].centery))
             self._frame_surface.blit(self.tennisOpponentRacket[0], self.tennisOpponentGrip)
+
 
     def collideOpponentRacket(self, elem):
         centerx = self.tennisOpponentGrip.center[0]
@@ -934,7 +934,7 @@ class BodyGameRuntime(object):
             elem[5] = True
             elem[4] = False
 
-    def moveAIBall(self, elem):    # size 30 bounce up and size 100 bounce up on my side
+    def moveAIBall(self, elem, otherSide):    # size 30 bounce up and size 100 bounce up on my side
         if elem[4] == True:
             elem[0].centerx += self.depthContact()
             if elem[3] > 30:
@@ -945,12 +945,12 @@ class BodyGameRuntime(object):
             else:
                 elem[0].centery += 20
                 if elem[5] == True:
-                    break
+                    return
                 else:
                     if elem[3] <= 15:
                         self.score += 1
                         self.playTennisList.remove(elem)
-        else:
+        elif elem[5] == True:
             elem[0].centerx += self.depthContact()
             if elem[3] <= 100:
                 if elem[1] > 0:
@@ -960,12 +960,14 @@ class BodyGameRuntime(object):
             else:
                 elem[0].centery += 20
                 if elem[4] == True:
-                    break
+                    return
                 else:
                     if elem[3] >= 150:
                         self.score -= 1   # change when the score is fixed
                         self.playTennisList.remove(elem)
-
+        elif elem[4] == False and elem[5] == False:
+            elem[0].centerx = otherSide[0]
+            elem[0].centery = otherSide[1]
 
     
 
