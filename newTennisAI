@@ -121,10 +121,11 @@ class BodyGameRuntime(object):
         self.tennisAI = True
 
         self.court = pygame.image.load("tennisCourt.png")
-        self.opponentX = self._infoObject.current_w / 2
         self.playTennisList = []
         self.tennisOpponentRacket = [pygame.image.load("opponentRightRacket.png"), pygame.image.load("opponentLeftRacket.png")]
         self.tennisOpponentGrip = ''
+        self.opponentRacketCoor = [0,0]
+        self.speed = 0
 
         self.background = ""
 
@@ -771,6 +772,7 @@ class BodyGameRuntime(object):
         left = centerx - self.tennisBallr
         right = centerx + width + self.tennisBallr
         if left <= elem[0].centerx <= right and top <= elem[0].centery <= bottom:
+            self.speed = elem[1]
             elem[4] = True
             if self.tennisAI:
                 elem[5] = False
@@ -871,6 +873,7 @@ class BodyGameRuntime(object):
 ###########################################################################
     def tennisAIMode(self):
         if self.tennisAI:
+            self.functionCount += 1
             if self.rightSide:
                 side = self.rightHandCoor
                 otherSide = self.leftHandCoor
@@ -881,21 +884,21 @@ class BodyGameRuntime(object):
             self.drawScoreTime()
             self.background = self.court
             self.drawRacket()
+            self.drawOpponentRacket()
+            directionO = random.randint(-35, 35)
             for elem in self.playTennisList:
-                self.drawOpponentRacket(elem)
-                #if elem[5]:
-                #    self.collideRacket(elem)
-                #elif elem[4]:
-                #    self.collideOpponentRacket(elem)
-                self.moveAIBall(elem, otherSide)
+                self.moveOpponentRacket(elem)
+                if self.moveAIBall(elem, otherSide, directionO):
+                    break
+                self.collideOpponentRacket(elem)
+                self.collideRacket(elem)
             self.drawAiBall(otherSide)
 
-    
     def drawAiBall(self, otherSide):
         if len(self.playTennisList) == 0:
             tennisBallx = otherSide[0]
             tennisBally = otherSide[1]
-            tennisBallSpeed = random.randint(50, 100)
+            tennisBallSpeed = random.randint(10, 15)
             scale = 150
             hit = False
             opponentHit = False
@@ -904,68 +907,102 @@ class BodyGameRuntime(object):
             self.playTennisList.append([drawBall, tennisBallSpeed, ball, scale, hit, opponentHit])
         for elem in self.playTennisList:
             if elem[4] == True:
-                 elem[3] -= 10
+                 elem[3] -= 5
             elif elem[5] == True:
-                 elem[3] += 10
+                 elem[3] += 5
             self._frame_surface.blit(pygame.transform.smoothscale(elem[2], [elem[3], elem[3]]), elem[0])
 
-    def drawOpponentRacket(self, elem):
+    def drawOpponentRacket(self):
         # checks which side racket is on according to their dominant hand
         # when hand is on the left side of body
-        if self.opponentX > elem[0].centerx:
-            self.tennisOpponentGrip = self.tennisOpponentRacket[1].get_rect(bottomright=(self.opponentX, elem[0].centery))
+        if self.depthContact() < 0:
+            self.tennisOpponentGrip = self.tennisOpponentRacket[1].get_rect(bottomright=(self.opponentRacketCoor))
             self._frame_surface.blit(self.tennisOpponentRacket[1], self.tennisOpponentGrip)
         # when hand is on the right side of body
-        else:
-            self.tennisOpponentGrip = self.tennisOpponentRacket[0].get_rect(bottomleft=(self.opponentX, elem[0].centery))
+        elif self.depthContact() >= 0:
+            self.tennisOpponentGrip = self.tennisOpponentRacket[0].get_rect(bottomleft=(self.opponentRacketCoor))
             self._frame_surface.blit(self.tennisOpponentRacket[0], self.tennisOpponentGrip)
 
+    def moveOpponentRacket(self, elem):
+        y = elem[0].centery
+        opponentX = elem[0].centerx
+        if elem[0].centery >= self._infoObject.current_h / 4:
+                y = self._infoObject.current_h / 4
+        if self.depthContact() < 0 and elem[5] == False:
+            self.opponentRacketCoor[0] = opponentX + 112
+            self.opponentRacketCoor[1] = y + 50
+        elif self.depthContact() >= 0 and elem[5] == False:
+            self.opponentRacketCoor[0] = opponentX - 112
+            self.opponentRacketCoor[1] = y + 75
 
     def collideOpponentRacket(self, elem):
         centerx = self.tennisOpponentGrip.center[0]
         centery = self.tennisOpponentGrip.center[1]
         width = self.tennisOpponentGrip.width / 2
         height = self.tennisOpponentGrip.height / 2
-        bottom = centery + (elem[0].height / 2)
-        top = centery - height - (elem[0].height / 2)
-        left = centerx - (elem[0].width / 2)
-        right = centerx + width + (elem[0].width / 2)
+        bottom = centery + elem[3] / 2
+        top = centery - height - elem[3] / 2
+        left = centerx - elem[3] / 2
+        right = centerx + width + elem[3] / 2
         if left <= elem[0].centerx <= right and top <= elem[0].centery <= bottom:
+            self.speed = elem[1] // 2
             elem[5] = True
             elem[4] = False
 
-    def moveAIBall(self, elem, otherSide):    # size 30 bounce up and size 100 bounce up on my side
+    def moveAIBall(self, elem, otherSide, directionO):    # size 30 bounce up and size 100 bounce up on my side
+        if otherSide == self.rightHandCoor:
+            open = self.rightHandOpen
+        else:
+            open = self.leftHandOpen
+            
         if elem[4] == True:
-            elem[0].centerx += self.depthContact()
-            if elem[3] > 30:
-                if elem[1] > 0:
-                    elem[0].centery += 20
+            elem[0].centerx += self.depthContact() / 5
+            if elem[0].centerx >= self._infoObject.current_w or elem[0].centerx <= 0:
+                self.playTennisList.remove(elem)
+                return True
+            if elem[3] > 70:
+                if elem[0].y <= 0:
+                    self.speed = 0
+                if self.speed > 0:
+                    elem[0].centery -= 10
+                    self.speed -= 1
                 else:
-                    elem[0].centery -= 20
+                    elem[0].centery += 30
             else:
-                elem[0].centery += 20
+                elem[0].centery -= 20
                 if elem[5] == True:
                     return
                 else:
-                    if elem[3] <= 15:
+                    if elem[3] <= 30:
                         self.score += 1
                         self.playTennisList.remove(elem)
+                        return True
+                    
         elif elem[5] == True:
-            elem[0].centerx += self.depthContact()
+            elem[0].centerx += directionO
+            if elem[0].centerx >= self._infoObject.current_w or elem[0].centerx <= 0:
+                self.playTennisList.remove(elem)
+                return True
             if elem[3] <= 100:
-                if elem[1] > 0:
-                    elem[0].centery += 20
+                if elem[0].y <= 0:
+                    self.speed = 0
+                if self.speed > 0:
+                    elem[0].centery -= 10
+                    self.speed -= 1
+                    print(self.speed)
                 else:
-                    elem[0].centery -= 20
+                    elem[0].centery += 30
             else:
-                elem[0].centery += 20
+                elem[0].centery -= 5
                 if elem[4] == True:
                     return
                 else:
                     if elem[3] >= 150:
                         self.score -= 1   # change when the score is fixed
                         self.playTennisList.remove(elem)
-        elif elem[4] == False and elem[5] == False:
+                        return True
+
+        elif elem[4] == False and elem[5] == False and open == False:
             elem[0].centerx = otherSide[0]
             elem[0].centery = otherSide[1]
 
