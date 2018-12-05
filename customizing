@@ -83,6 +83,9 @@ class BodyGameRuntime(object):
         self.spineMidCoor = (0,0)
 
         # characteristics of soccer ball
+        self.ball = pygame.image.load("soccer.png")
+        self.shoesR = pygame.image.load("shoe1R.png")
+        self.shoesL = pygame.image.load("shoe1L.png")
         self.soccerList = []
         self.rightKick = False
         self.leftKick = False
@@ -92,6 +95,8 @@ class BodyGameRuntime(object):
         self.soccerKicker = False
         self.rightGlove = pygame.image.load("glove1R.png")
         self.leftGlove = pygame.image.load("glove1L.png")
+        self.rightShoe = pygame.image.load("shoe1R.png")
+        self.leftShoe = pygame.image.load("shoe1L.png")
 
         self.soccerGoalFront = pygame.image.load('goal.png')
         self.goalieCoor = [self._infoObject.current_w / 2, self._infoObject.current_h / 2]
@@ -308,30 +313,134 @@ class BodyGameRuntime(object):
         drawglove = gloves[3][0].get_rect(center=(glove4.x + 125, glove4.y + 125))
         self._frame_surface.blit(gloves[3][0], drawglove)
 
-
         # checking the mode player chose
-        if self.lasso:
-            print(self.leftHandCoor)
-            if glove1.collidepoint(self.rightHandCoor):
-                self.rightGlove = gloves[0][0]
-                self.leftGlove = gloves[0][1]
-            elif glove2.collidepoint(self.rightHandCoor):
-                self.rightGlove = gloves[1][0]
-                self.leftGlove = gloves[1][1]
-            elif glove3.collidepoint(self.rightHandCoor):
-                self.rightGlove = gloves[2][0]
-                self.leftGlove = gloves[2][1]
-            elif glove4.collidepoint(self.rightHandCoor):
-                self.rightGlove = gloves[3][0]
-                self.leftGlove = gloves[3][1]
+        if glove1.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.rightGlove = gloves[0][0]
+            self.leftGlove = gloves[0][1]
+        elif glove2.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.rightGlove = gloves[1][0]
+            self.leftGlove = gloves[1][1]
+        elif glove3.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.rightGlove = gloves[2][0]
+            self.leftGlove = gloves[2][1]
+        elif glove4.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.rightGlove = gloves[3][0]
+            self.leftGlove = gloves[3][1]
+
+        soccer0 = pygame.Rect(50, self._infoObject.current_h - 400, 150, 150)
+        soccer1 = pygame.Rect(250, self._infoObject.current_h - 400, 150, 150)
+        soccer2 = pygame.Rect(450, self._infoObject.current_h - 400, 150, 150)
+        soccer3 = pygame.Rect(650, self._infoObject.current_h - 400, 150, 150)
+        soccer4 = pygame.Rect(850, self._infoObject.current_h - 400, 150, 150)
+        soccer5 = pygame.Rect(1050, self._infoObject.current_h - 400, 150, 150)
+        soccer6 = pygame.Rect(1250, self._infoObject.current_h - 400, 150, 150)
+        soccer = [pygame.image.load("soccer.png"), pygame.image.load("soccer1.png"), 
+                  pygame.image.load("soccer2.png"), pygame.image.load("soccer3.png"), 
+                  pygame.image.load("soccer4.png"), pygame.image.load("soccer5.png"), 
+                  pygame.image.load("soccer6.png")]
+        
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), soccer0)
+        drawball = soccer[0].get_rect(center=(soccer0.x + 75, soccer0.y + 75))
+        self._frame_surface.blit(soccer[0], drawball)
+
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), soccer1)
+        drawball = soccer[1].get_rect(center=(soccer1.x + 75, soccer1.y + 75))
+        self._frame_surface.blit(soccer[1], drawball)
+
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), soccer2)
+        drawball = soccer[2].get_rect(center=(soccer2.x + 75, soccer2.y + 75))
+        self._frame_surface.blit(soccer[2], drawball)
+
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), soccer3)
+        drawball = soccer[3].get_rect(center=(soccer3.x + 75, soccer3.y + 75))
+        self._frame_surface.blit(soccer[3], drawball)
+
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), soccer4)
+        drawball = soccer[4].get_rect(center=(soccer4.x + 75, soccer4.y + 75))
+        self._frame_surface.blit(soccer[4], drawball)
+
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), soccer5)
+        drawball = soccer[5].get_rect(center=(soccer5.x + 75, soccer5.y + 75))
+        self._frame_surface.blit(soccer[5], drawball)
+
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), soccer6)
+        drawball = soccer[6].get_rect(center=(soccer6.x + 75, soccer6.y + 75))
+        self._frame_surface.blit(soccer[6], drawball)
+
+        if soccer0.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[0]
+        elif soccer1.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[1]
+        elif soccer2.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[2]
+        elif soccer2.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[2]
+        elif soccer3.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[3]
+        elif soccer4.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[4]
+        elif soccer5.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[5]
+        elif soccer6.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.ball = soccer[6]
+
+        shoe1 = pygame.Rect(50, self._infoObject.current_h - 600, 200, 150)
+        shoe2 = pygame.Rect(250, self._infoObject.current_h - 600, 200, 150)
+        shoe3 = pygame.Rect(450, self._infoObject.current_h - 600, 200, 150)
+        shoes = [(pygame.image.load("shoe1R.png"), pygame.image.load("shoe1L.png")), 
+                  (pygame.image.load("shoe2R.png"), pygame.image.load("shoe2L.png")), 
+                  (pygame.image.load("shoe3R.png"), pygame.image.load("shoe3L.png"))]
+        
+        pygame.draw.rect(self._frame_surface, (255, 255, 255), shoe1)
+        drawShoe = shoes[0][0].get_rect(center=(shoe1.x + 100, shoe1.y + 100))
+        self._frame_surface.blit(shoes[0][0], drawShoe)
+
+        pygame.draw.rect(self._frame_surface, (255, 255, 255), shoe2)
+        drawShoe = shoes[1][0].get_rect(center=(shoe2.x + 100, shoe2.y + 100))
+        self._frame_surface.blit(shoes[1][0], drawShoe)
+
+        pygame.draw.rect(self._frame_surface, (255, 255, 255), shoe3)
+        drawShoe = shoes[2][0].get_rect(center=(shoe3.x + 100, shoe3.y + 100))
+        self._frame_surface.blit(shoes[2][0], drawShoe)
+
+        if shoe1.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.rightShoe = shoes[0][0]
+            self.leftShoe = shoes[0][1]
+        elif shoe2.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.rightShoe = shoes[1][0]
+            self.leftShoe = shoes[1][1]
+        elif shoe3.collidepoint(self.rightHandCoor) and self.rightHandOpen == False:
+            self.rightShoe = shoes[2][0]
+            self.leftShoe = shoes[2][1]
 
         try:
             drawglove = self.rightGlove.get_rect(center=(self.rightHandCoor))
             self._frame_surface.blit(self.rightGlove, drawglove)
             drawglove = self.leftGlove.get_rect(center=(self.leftHandCoor))
             self._frame_surface.blit(self.leftGlove, drawglove)
+            drawball = self.ball.get_rect(center=(self.spineMidCoor[0], self.rightAnkleCoor[1]))
+            self._frame_surface.blit(self.ball, drawball)
+            drawShoe = self.rightShoe.get_rect(center=(self.rightAnkleCoor))
+            self._frame_surface.blit(self.rightShoe, drawShoe)
+            drawShoe = self.leftShoe.get_rect(center=(self.leftAnkleCoor))
+            self._frame_surface.blit(self.leftShoe, drawShoe)
         except:
             pass
+
+
+        # home button
+        font = pygame.font.SysFont('Courier', 60, bold=True)
+        homeRect =  pygame.Rect(self._infoObject.current_w - 250, 700, 200, 200)
+        pygame.draw.rect(self._frame_surface, (0, 0, 0), homeRect)
+        homeText = "Home"
+        homeDraw = font.render(homeText, True, (255, 255, 255) )
+        self._frame_surface.blit(homeDraw, (self._infoObject.current_w - 250, 750))
+
+        if homeRect.collidepoint(self.rightHandCoor):
+            self.customizing = False
+            self.starterCount = 0
+            #self.__init__()    # newly added part to initialize everything
+            self.starter = True
 
         
 
@@ -457,12 +566,11 @@ class BodyGameRuntime(object):
             soccerx = random.uniform(75, (self._infoObject.current_w - 75))
             soccery = self._infoObject.current_h - 75
             scale = 150
-            ball = pygame.image.load("soccer.png")
-            drawBall = ball.get_rect(center=(soccerx, soccery))
+            drawBall = self.ball.get_rect(center=(soccerx, soccery))
             speed = 100
             hit = False
             angle = 0
-            self.soccerList.append([drawBall, ball, scale, hit, speed, angle])
+            self.soccerList.append([drawBall, self.ball, scale, hit, speed, angle])
         for elem in self.soccerList:
             if elem[3] == False:
                 if elem[2] <= 50:
@@ -474,7 +582,7 @@ class BodyGameRuntime(object):
                     self.soccerList.remove(elem)
                 elem[2] += 1
                 self._frame_surface.blit(pygame.transform.smoothscale(elem[1], [elem[2], elem[2]]), elem[0])
-            pygame.display.flip()
+            #pygame.display.flip()
        
 
     # soccer ball moved with foot
@@ -574,11 +682,10 @@ class BodyGameRuntime(object):
     def drawKickerBall(self):
         if len(self.goalieList) == 0:
             scale = 150
-            ball = pygame.image.load("soccer.png")
-            drawBall = ball.get_rect(center=(self._infoObject.current_w / 2, self._infoObject.current_h / 2))
+            drawBall = self.ball.get_rect(center=(self._infoObject.current_w / 2, self._infoObject.current_h / 2))
             speed = 100
             hit = False
-            self.goalieList.append([drawBall, ball, scale, hit, speed])
+            self.goalieList.append([drawBall, self.ball, scale, hit, speed])
         for elem in self.goalieList:
             if elem[3] == True:
                 if elem[2] <= 70 or elem[0].x < 0 or elem[0].x + elem[0].width > self._infoObject.current_w:
@@ -614,6 +721,8 @@ class BodyGameRuntime(object):
         if self.soccerGoalie:
             self.functionCount += 1
             goal = pygame.Rect(420,520,1010,380)
+            self._frame_surface.blit(self.rightGlove, self.rightGlove.get_rect(center=(self.rightHandCoor)))
+            self._frame_surface.blit(self.leftGlove, self.leftGlove.get_rect(center=(self.leftHandCoor)))
             self.drawScoreTime()
             self.background = self.soccerGoalBack
             for elem in self.kickList:
@@ -630,17 +739,15 @@ class BodyGameRuntime(object):
     def drawGoalieBall(self):
         if len(self.kickList) == 0:
             scale = 30
-            ball = pygame.image.load("soccer.png")
-            drawBall = ball.get_rect(center=(self._infoObject.current_w / 2, self._infoObject.current_h / 2))
+            drawBall = self.ball.get_rect(center=(self._infoObject.current_w / 2, self._infoObject.current_h / 2))
             up = True
             direction = random.randrange(-7, 7, 1)
-            self.kickList.append([drawBall, ball, scale, direction, up])
+            self.kickList.append([drawBall, self.ball, scale, direction, up])
         for elem in self.kickList:
             if elem[2] >= 150:
                 self.kickList.remove(elem)
             elem[2] += 2
             self._frame_surface.blit(pygame.transform.smoothscale(elem[1], [elem[2], elem[2]]), elem[0])
-            pygame.display.flip()
 
     def checkHandCollison(self, elem):
         # distance between left/right hand and the center of ball
@@ -648,7 +755,7 @@ class BodyGameRuntime(object):
         distanceLeft = self.distanceFormula(self.leftHandCoor[0], self.leftHandCoor[1], elem[0].centerx, elem[0].centery)
         
         # checking distance less than circle radius
-        if distanceRight <= elem[2] or distanceLeft <= elem[2] and elem[2] >= 100:   # when both hands collide
+        if distanceRight <= elem[2] or distanceLeft <= elem[2] and elem[2] >= 120:   # when both hands collide
             self.kickList.remove(elem)
             self.score += 1
 
